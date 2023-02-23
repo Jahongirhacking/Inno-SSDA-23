@@ -5,10 +5,17 @@ using namespace std;
 
 class Matrix {
 public:
-    Matrix() {}
+    Matrix() {
+        this->width = 0;
+        this->height = 0;
+        this->elements = {};
+    }
     Matrix(int n, int m) {
         this->height = n;
         this->width = m;
+        vector<int> init(m, 0);
+        vector<vector<int>> empty(n, init);
+        this->elements = empty;
     }
     Matrix(int n, int m, vector<vector<int>> arr) {
         this->elements = arr;
@@ -24,55 +31,66 @@ public:
     vector<vector<int>> getElements() {
         return this->elements;
     }
-    void assignMatrix(vector<vector<int>> arr) {
-        this->elements = arr;
+    void setElementByIndex(int i, int j, int val) {
+        this->elements[i][j] = val;
     }
+    int getElementByIndex(int i, int j) {
+        return this->elements[i][j];
+    }
+
+    // Assign Operator
+    void operator = (Matrix M) {
+        this->height = M.getElements().size();
+        this->width = M.getElements()[0].size();
+        this->elements = M.getElements();
+    }
+
     // Addition operation
-    vector<vector<int>> matrixAddition(Matrix* M) {
-        vector<vector<int>> sum = this->elements;
+    Matrix operator + (Matrix M) {
+        Matrix sumMatrix = Matrix(this->height, this->width, this->elements);
         for(int i=0; i<this->height; i++) {
             for(int j=0; j<this->width; j++) {
-                sum[i][j] += (M->getElements())[i][j];
+                sumMatrix.setElementByIndex(i, j,sumMatrix.getElementByIndex(i, j) + M.getElementByIndex(i, j));
             }
         }
-        return sum;
+        return sumMatrix;
     }
-    // Subtraction Operation
-    vector<vector<int>> matrixSubtraction(Matrix* M) {
-        vector<vector<int>> dif = this->elements;
+
+    // Subtraction operation
+    Matrix operator - (Matrix M) {
+        Matrix difMatrix = Matrix(this->height, this->width, this->elements);
         for(int i=0; i<this->height; i++) {
             for(int j=0; j<this->width; j++) {
-                dif[i][j] -= (M->getElements())[i][j];
+                difMatrix.setElementByIndex(i, j,difMatrix.getElementByIndex(i, j) - M.getElementByIndex(i, j));
             }
         }
-        return dif;
+        return difMatrix;
     }
+
     // Multiplication Operation
-    vector<vector<int>> matrixMultiplication(Matrix* M) {
-        vector<int> init(M->getWidth(), 0);
-        vector<vector<int>> mul(this->height, init);
+    Matrix operator * (Matrix M) {
+        Matrix multMatrix = Matrix(this->height, M.getWidth());
         for(int i=0; i<this->height; i++) {
-            for(int j=0; j<M->getWidth(); j++) {
-                int sum = 0;
+            for(int j=0; j<M.getWidth(); j++) {
                 // compute each element with multiplication and sum
                 for(int k=0; k<this->width; k++) {
-                    sum += this->elements[i][k] * (M->getElements())[k][j];
+                    multMatrix.setElementByIndex(i, j,multMatrix.getElementByIndex(i, j)
+                    + this->elements[i][k] * M.getElementByIndex(k, j));
                 }
-                mul[i][j] = sum;
             }
         }
-        return mul;
+        return multMatrix;
     }
+
     // Transpose Matrix
-    vector<vector<int>> matrixTranspose() {
-        vector<int> init(this->height, 0);
-        vector<vector<int>> transpose(this->width, init);
+    Matrix matrixTranspose() {
+        Matrix transposeMatrix = Matrix(this->width, this->height);
         for(int i=0; i<this->height; i++) {
             for(int j=0; j<this->width; j++) {
-                transpose[j][i] = this->elements[i][j];
+                transposeMatrix.setElementByIndex(j, i, this->elements[i][j]);
             }
         }
-        return transpose;
+        return transposeMatrix;
     }
 
     // Print the matrix elements to output
@@ -91,13 +109,28 @@ private:
     vector<vector<int>> elements;
 };
 
+void activateMatrix(int k, Matrix temp, Matrix& A, Matrix& B, Matrix& C) {
+    switch (k) {
+        case 0:
+            A = temp;
+            break;
+        case 1:
+            B = temp;
+            break;
+        case 2:
+            C = temp;
+            break;
+    }
+    return;
+}
+
 int main() {
     ifstream inFile ("input.txt");
-    int n, m;
+    int n=0, m=0;
     string result = "";
-    Matrix* A;
-    Matrix* B;
-    Matrix* C;
+    Matrix A;
+    Matrix B;
+    Matrix C;
 
     for(int k=0; k<3; k++) {
         inFile >> n >> m;
@@ -109,50 +142,35 @@ int main() {
                 inFile >> arr[i][j];
             }
         }
+        Matrix temp = Matrix(n, m, arr);
         // Create Matrix A, B and C
-        switch (k) {
-            case 0:
-                A = new Matrix(n, m, arr);
-                break;
-            case 1:
-                B = new Matrix(n, m, arr);
-                break;
-            case 2:
-                C = new Matrix(n, m, arr);
-                break;
-        }
+        activateMatrix(k, temp, A, B, C);
     }
 
-    vector<vector<int>> temp;
     // Addition A+B
-    if(A->getWidth() == B->getWidth() && A->getHeight() == B->getHeight()) {
-        temp = A->matrixAddition(B);
-        Matrix* D = new Matrix(A->getHeight(), A->getWidth(), temp);
-        D->displayMatrix(result);
+    if(A.getWidth() == B.getWidth() && A.getHeight() == B.getHeight()) {
+        Matrix D = (A + B);
+        D.displayMatrix(result);
     } else {
         result += ERROR;
     }
     // Subtraction B-A
-    if(A->getWidth() == B->getWidth() && A->getHeight() == B->getHeight()) {
-        temp = B->matrixSubtraction(A);
-        Matrix* E = new Matrix(A->getHeight(), A->getWidth(), temp);
-        E->displayMatrix(result);
+    if(A.getWidth() == B.getWidth() && A.getHeight() == B.getHeight()) {
+        Matrix E = (B - A);
+        E.displayMatrix(result);
     } else {
         result += ERROR;
     }
     // Multiplication C*A
-    if(C->getWidth() == A->getHeight()) {
-        temp = C->matrixMultiplication(A);
-        Matrix* F = new Matrix(C->getHeight(), A->getWidth(), temp);
-        F->displayMatrix(result);
+    if(C.getWidth() == A.getHeight()) {
+        Matrix F = (C * A);
+        F.displayMatrix(result);
     } else {
         result += ERROR;
     }
     // Transpose A
-    temp = A->matrixTranspose();
-    Matrix* G = new Matrix(A->getWidth(), A->getHeight(), temp);
-    G->displayMatrix(result);
-
+    Matrix G = (A.matrixTranspose());
+    G.displayMatrix(result);
     ofstream myFile;
     myFile.open ("output.txt");
     myFile << result;
