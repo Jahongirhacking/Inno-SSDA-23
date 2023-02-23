@@ -171,6 +171,8 @@ int main() {
     // Transpose A
     Matrix G = (A.matrixTranspose());
     G.displayMatrix(result);
+    
+    // Output
     ofstream myFile;
     myFile.open ("output.txt");
     myFile << result;
