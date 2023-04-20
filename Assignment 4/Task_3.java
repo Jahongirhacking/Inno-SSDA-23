@@ -3,11 +3,14 @@
 
 import java.io.File;
 
+// Logging the data to the file (Singleton)
 class Logging {
     private static Logging instance = null;
+    // make the constructor private to avoid multiple instance
     private  Logging() {};
     private File file;
     StringBuilder fileData = new StringBuilder();
+    // Singleton implementation
     public static Logging getInstance(){
         synchronized(Logging.class){
             if(instance==null){
@@ -41,6 +44,8 @@ class Logging {
     }
 }
 
+// Monitoring is implemented in Factory Pattern
+// It has some product classes we need to choose one
 abstract class Monitoring {
     public Logging logging;
     Monitoring() {
@@ -51,10 +56,6 @@ abstract class Monitoring {
 }
 
 abstract class MonitoringFactory {
-    public Monitoring returnMonitoring() {
-        Monitoring monitoring = createMonitoring();
-        return monitoring;
-    }
     public abstract Monitoring createMonitoring();
 }
 
@@ -103,6 +104,8 @@ class SystemProcessesMonitoring extends Monitoring {
     }
 }
 
+// ProcessData has multiple fields
+// We need to implement Builder Pattern
 class ProcessData {
     private long PID;
     private double SHR;
