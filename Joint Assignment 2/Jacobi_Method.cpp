@@ -29,7 +29,7 @@ public:
         vector<vector<double>> empty(n, vector<double>(m, 0));
         this->elements = empty;
     }
-    Matrix(int n, int m, vector<vector<double>> &arr) {
+    Matrix(int n, int m, vector<vector<double>> arr) {
         this->elements = arr;
         this->height = n;
         this->width = m;
@@ -411,6 +411,28 @@ Matrix* solve(Matrix* A, Matrix* b) {
     return b;
 }
 
+Matrix* getLowerTriangular(Matrix* A) {
+    Matrix* matrix = new Matrix(A->getHeight(), A->getWidth(), A->getElements());
+    // with diagonal
+    rep(i, matrix->getHeight()) {
+        for(int j=i+1; j<matrix->getWidth(); j++) {
+            matrix->setElementByIndex(i, j, 0);
+        }
+    }
+    return matrix;
+}
+
+Matrix* getUpperTriangular(Matrix* A) {
+    Matrix* matrix = new Matrix(A->getHeight(), A->getWidth(), A->getElements());
+    // without diagonal
+    rep(i, matrix->getHeight()) {
+        rep(j, i+1) {
+            matrix->setElementByIndex(i, j, 0);
+        }
+    }
+    return matrix;
+}
+
 bool checkMatrix(Matrix* A) {
     rep(i, A->getHeight()) if(A->getElementByIndex(i,i) == 0) return false;
     double sum;
@@ -434,10 +456,23 @@ double findEpsilon(Matrix* diff) {
     return sqrt(sum);
 }
 
-Matrix* JacobiMethod(Matrix* A, Matrix* b, Matrix* beta, Matrix* D_1){
-    Matrix *prev, *current, *temp, *diff;
+Matrix* JacobiMethod(Matrix* A, Matrix* b){
+    Matrix *prev, *current, *alpha, *beta, *D_1, *Identity;
     double epsilon;
     int index = 0;
+    //Identity Matrix
+    Identity = new IdentityMatrix(A->getHeight());
+    // Inverse Diagonal
+    D_1 = inverseMatrix(getDiagonal(A));
+    // find alpha =  I - (D_1 * A)
+    alpha = (*Identity) - *((*D_1) * (*A));
+    cout<<"alpha:"<<endl;
+    alpha->displayMatrix();
+    // find beta = D_1 * b
+    beta = (*D_1) * (*b);
+    cout<<"beta:"<<endl;
+    beta->displayMatrix();
+    
     prev = beta;
     do {
        current = (*prev) + (*((*D_1) * (*((*b) - *((*A) * (*prev))))));
@@ -458,10 +493,6 @@ int main() {
     Matrix* A;
     ColumnVector* b;
     Matrix* X;
-    Matrix* alpha;
-    Matrix* beta;
-    Matrix* D_1;
-    Matrix* Identity;
     // Input Section
     cin >> n;
     vector<vector<double>> arr(n,vector<double>(n));
@@ -483,19 +514,7 @@ int main() {
     }
     // Create vector b
     b = new ColumnVector(m, vectorB);
-    //Identity Matrix
-    Identity = new IdentityMatrix(n);
-    // Inverse Diagonal
-    D_1 = inverseMatrix(getDiagonal(A));
-    // find alpha =  I - (D_1 * A)
-    alpha = (*Identity) - *((*D_1) * (*A));
-    cout<<"alpha:"<<endl;
-    alpha->displayMatrix();
-    // find beta = D_1 * b
-    beta = (*D_1) * (*b);
-    cout<<"beta:"<<endl;
-    beta->displayMatrix();
-    // X0 = beta
-    X = JacobiMethod(A, b, beta, D_1);
+    
+    X = JacobiMethod(A, b);
     return 0;
 }
