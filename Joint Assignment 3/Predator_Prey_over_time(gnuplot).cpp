@@ -57,7 +57,7 @@ int main() {
             fprintf(pipe, "set xlabel 't'\n");
             fprintf(pipe, "set ylabel 'Population'\n");
             fprintf(pipe, "set title 'Predator/Prey Populations Over Time'\n");
-            fprintf(pipe, "plot '-' using 1:2 title 'Victim population' with lines, '-' using 1:2 title 'Killer population' with lines\n");
+            fprintf(pipe, "plot '-' using 1:2 title 'Killer population' with lines, '-' using 1:2 title 'Victim population' with lines\n");
 
             // Graph of Killers
             rep(i, N+1){
